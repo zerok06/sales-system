@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  firstName      String
+  lastName       String
+  dni            String           @unique
+  fullName       String
+  email          String           @unique
+  phoneNumer     String
+  gender         String
+  role           String
+  urlImage       String
+  address        String
+  createAt       DateTime         @default(now())
+  updateAt       DateTime         @default(now())
+  TicketServicio TicketServicio[]
+  DetalleVenta   DetalleVenta[]
+  TicketVenta    TicketVenta[]
+}
+
+model Cliente {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  firstName      String
+  lastName       String
+  dni            String           @unique
+  fullName       String
+  email          String           @unique
+  phoneNumber    String
+  address        String
+  createAt       DateTime         @default(now())
+  updateAt       DateTime         @default(now())
+  Ficha          Ficha[]
+  TicketServicio TicketServicio[]
+  TicketVenta    TicketVenta[]
+}
+
+model Categoria {
+  id       String     @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  Producto Producto[]
+  createAt DateTime   @default(now())
+  updateAt DateTime   @default(now())
+}
+
+model Producto {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  shortName    String
+  description  String
+  price        Float
+  stock        Int
+  model        String
+  brand        String
+  urlImage     String
+  categoria    Categoria      @relation(fields: [categoriaId], references: [id])
+  categoriaId  String         @db.ObjectId
+  createAt     DateTime       @default(now())
+  updateAt     DateTime       @default(now())
+  DetalleVenta DetalleVenta[]
+}
+
+model Empresa {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  address     String
+  province    String
+  departament String
+  country     String
+  email       String
+  description String
+  urlImage    String
+  createAt    DateTime @default(now())
+  updateAt    DateTime @default(now())
+}
+
+model Ficha {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  brand           String           @default("None")
+  model           String           @default("None")
+  procesador      String           @default("None")
+  memory          Int              @default(0)
+  almacenamiento  String           @default("None")
+  grafica         String           @default("None")
+  pantalla        String           @default("None")
+  sistema         String           @default("None")
+  descripction    String           @default("None")
+  cliente         Cliente          @relation(fields: [clienteId], references: [id])
+  createAt        DateTime         @default(now())
+  updateAt        DateTime         @default(now())
+  DetalleServicio DetalleServicio?
+  clienteId       String           @db.ObjectId
+}
+
+model Servicio {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  description     String            @default("None")
+  price           Float             @default(0.00)
+  duration        Float             @default(0.00)
+  urlImage        String            @default("None")
+  createAt        DateTime          @default(now())
+  updateAt        DateTime          @default(now())
+  DetalleServicio DetalleServicio[]
+}
+
+model DetalleServicio {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  ficha            Ficha          @relation(fields: [fichaId], references: [id])
+  servicio         Servicio       @relation(fields: [servicioId], references: [id])
+  amount           Float
+  ticketServicio   TicketServicio @relation(fields: [ticketServicioId], references: [id])
+  createAt         DateTime       @default(now())
+  updateAt         DateTime       @default(now())
+  fichaId          String         @unique @db.ObjectId
+  servicioId       String         @db.ObjectId
+  ticketServicioId String         @db.ObjectId
+}
+
+model DetalleVenta {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  producto      Producto    @relation(fields: [productoId], references: [id])
+  amount        Float
+  units         Int
+  ticketVenta   TicketVenta @relation(fields: [ticketVentaId], references: [id])
+  createAt      DateTime    @default(now())
+  updateAt      DateTime    @default(now())
+  productoId    String      @db.ObjectId
+  Usuario       Usuario?    @relation(fields: [usuarioId], references: [id])
+  usuarioId     String?     @db.ObjectId
+  ticketVentaId String      @db.ObjectId
+}
+
+model TicketServicio {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  cliente         Cliente           @relation(fields: [clienteId], references: [id])
+  tecnico         Usuario           @relation(fields: [usuarioId], references: [id])
+  status          Boolean           @default(false)
+  description     String            @default("None")
+  createAt        DateTime          @default(now())
+  updateAt        DateTime          @default(now())
+  clienteId       String            @db.ObjectId
+  usuarioId       String            @db.ObjectId
+  DetalleServicio DetalleServicio[]
+}
+
+model TicketVenta {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  vendedor     Usuario        @relation(fields: [usuarioId], references: [id])
+  cliente      Cliente        @relation(fields: [clienteId], references: [id])
+  amount       Float
+  medioPago    String
+  status       Float
+  createAt     DateTime       @default(now())
+  updateAt     DateTime       @default(now())
+  usuarioId    String         @db.ObjectId
+  clienteId    String         @db.ObjectId
+  DetalleVenta DetalleVenta[]
+}
